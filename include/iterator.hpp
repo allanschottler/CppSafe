@@ -29,7 +29,8 @@ struct iterator {
 
     // safe deref: nullopt if at or past end
     deref_type operator*() const {
-        if (current_ >= begin_ && current_ < end_) return std::ref(*current_);
+        if(!out_of_range && current_ != end_)
+            return std::ref(*current_);
         return std::nullopt;
     }
 
@@ -41,44 +42,63 @@ struct iterator {
 
     arrow_proxy operator->() {
         arrow_proxy p;
-        if (current_ != end_)
+        if (!out_of_range && current_ != end_)
             p.opt = std::ref(*current_);
         return p;
     }
 
     // pre‐increment
     iterator& operator++() {
-        /*if (current_ != end_)*/ ++current_;
+        if(out_of_range < 0)
+            out_of_range = 0; // reset out of range if we were previously
+        if (current_ == end_) {
+            out_of_range = 1; // mark as out of range
+            return *this;
+        }
+        ++current_;
         return *this;
     }
 
     // post‐increment
     iterator operator++(int) {
         iterator tmp = *this;
+        if(out_of_range < 0)
+            out_of_range = 0; // reset out of range if we were previously
+        if (current_ == end_) {
+            out_of_range = 1; // mark as out of range
+            return tmp;
+        }
         ++*this;
         return tmp;
     }
 
     // pre‐decrement
     iterator& operator--() {
-       /*if (current_ != begin_) */
-            --current_;
+        if(out_of_range > 0)
+            out_of_range = 0; // reset out of range if we were previously
+       if(current_ == begin_) {
+            out_of_range = -1; // mark as out of range
+            return *this;
+        }
+        --current_;
         return *this;
     }
 
     // post‐decrement
     iterator operator--(int) {
         iterator tmp = *this;
+        if(out_of_range > 0)
+            out_of_range = 0; // reset out of range if we were previously
+        if(current_ == begin_) {
+            out_of_range = -1; // mark as out of range
+            return tmp;
+        }
         --*this;
         return tmp;
     }
 
-    // advance by +n or -n, clamped between [begin_,end_]
     iterator& operator+=(difference_type n) {
-        if (current_ == end_) return *this;
         std::advance(current_, n);
-        if (current_ > end_)   current_ = end_;
-        if (current_ < begin_) current_ = begin_;
         return *this;
     }
 
@@ -134,6 +154,7 @@ struct iterator {
 
 private:
     It begin_, end_, current_;
+    char out_of_range = 0;
 };
 
 // helpers to inject into range‐based for, etc.

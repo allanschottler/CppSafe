@@ -25,14 +25,14 @@ iterator<It> lower_bound(It first, It last, const T& value)
 template<class It, class F>
 void for_each(It first, It last, F&& func)
 requires safe::is_safe<It>::value {
-    for (auto it = first; it != last; ++it)
+    for(auto it = first; it != last; ++it)
         it->and_then(func);
 }
 
 template<class Container, class F>
 void for_each(Container& c, F&& func)
 requires safe::is_safe<Container>::value {
-    for (auto it = c.begin(); it != c.end(); ++it)
+    for(auto it = c.begin(); it != c.end(); ++it)
         it->and_then(func);
 }
 

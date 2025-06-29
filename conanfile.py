@@ -2,7 +2,7 @@ from conan import ConanFile
 from conan.tools.cmake import CMake, cmake_layout
 
 class Conan(ConanFile):
-    name = "sayf"
+    name = "safe"
     version = "1.0"
     license = "MIT"
     author = "Allan Schöttler"
@@ -30,5 +30,5 @@ class Conan(ConanFile):
         cmake.build()
 
     def package_info(self):
-        self.cpp_info.libs = ["sayf"]
+        self.cpp_info.libs = ["safe"]
     

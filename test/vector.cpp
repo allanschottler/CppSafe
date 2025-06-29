@@ -20,13 +20,13 @@ BOOST_AUTO_TEST_CASE(safe_vector_loop) {
     int sum = 0;
     for (auto it = vec.begin(); it != vec.end(); ++it) {
         if (auto val = *it) {
-            sum += val.value();
+            val.and_then([&sum](const int& v) { sum += v; });
         }
     }
     BOOST_CHECK(sum == 6);
     sum = 0;
     for(const auto& val : vec) {
-        sum += val.value();
+        val.and_then([&sum](const int& v) { sum += v; });
     }
     BOOST_CHECK(sum == 6);
 }

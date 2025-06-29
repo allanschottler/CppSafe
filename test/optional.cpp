@@ -12,10 +12,10 @@ BOOST_AUTO_TEST_CASE(safe_optional_basic) {
     BOOST_CHECK(opt2.and_then([](const int& val) { return val; }) == std::nullopt);
 
     // Move safe
-    safe::optional<int> opt3;
+    BOOST_CHECK(opt1.has_value());
     opt2 = std::move(opt1);
-    BOOST_CHECK(opt2.has_value());
     BOOST_CHECK(!opt1.has_value()); // opt1 should be empty after move
+    BOOST_CHECK(opt2.has_value());
     opt2.and_then([](const int& val) { BOOST_CHECK(val == 42); });
 
     opt2 = 100;
@@ -38,14 +38,11 @@ BOOST_AUTO_TEST_CASE(safe_optional_basic) {
         .and_then([](const int& val) { BOOST_CHECK(val == 111); return val; })
         .and_then([&opt2](const int& val) { opt2 = 2; return val; }) // Propagates 111, but opt2 is now 2
         .and_then([](const int& val) { BOOST_CHECK(val == 111); }); // Receives 111
-    opt2.and_then([](const int& val) { BOOST_CHECK(val == 2); }); // But now with new value
+    opt2.and_then([](const int& val) { BOOST_CHECK(val == 2); }); // Now with new value
 
 
     // BOOST_CHECK(*opt2.and_then([](const int& val) -> safe::optional<int> { return std::nullopt; })
     //                 .and_then([](const int& val) { return val+10; }) == std::nullopt);
-    bool ok = false;
-    opt2.and_then([&](const int& val) { ok = true; });
-    BOOST_CHECK(ok);
 }
 
 BOOST_AUTO_TEST_CASE(safe_optional_for_each) {

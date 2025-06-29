@@ -1,6 +1,6 @@
 #pragma once
 
-#include <optional>
+#include "optional.hpp"
 #include <iterator>
 #include <type_traits>
 #include <cstddef>
@@ -10,14 +10,14 @@
 namespace safe {
 
 template<typename It>
-class iterator {
-public:
+struct iterator {
     using traits            = std::iterator_traits<It>;
     using value_type        = typename traits::value_type;
     using reference         = typename traits::reference;
     using pointer           = typename traits::pointer;
     using difference_type   = typename traits::difference_type;
     using iterator_category = typename traits::iterator_category;
+    using deref_type        = optional<std::reference_wrapper<value_type>>;
 
     iterator(It begin, It end)
       : begin_(begin), end_(end), current_(begin)
@@ -28,20 +28,27 @@ public:
     {}
 
     // safe deref: nullopt if at or past end
-    std::optional<std::reference_wrapper<value_type>> operator*() const {
-        if (current_ != end_) return *current_;
+    deref_type operator*() const {
+        if (current_ >= begin_ && current_ < end_) return std::ref(*current_);
         return std::nullopt;
     }
 
-    // safe arrow: nullopt if at or past end
-    std::optional<pointer> operator->() const {
-        if (current_ != end_) return std::addressof(*current_);
-        return std::nullopt;
+    struct arrow_proxy {
+        deref_type opt;
+        deref_type* operator->() 
+        { return &opt; }
+    };
+
+    arrow_proxy operator->() {
+        arrow_proxy p;
+        if (current_ != end_)
+            p.opt = std::ref(*current_);
+        return p;
     }
 
     // pre‐increment
     iterator& operator++() {
-        if (current_ != end_) ++current_;
+        /*if (current_ != end_)*/ ++current_;
         return *this;
     }
 
@@ -54,9 +61,8 @@ public:
 
     // pre‐decrement
     iterator& operator--() {
-        if (current_ != begin_) {
+       /*if (current_ != begin_) */
             --current_;
-        }
         return *this;
     }
 
@@ -116,6 +122,14 @@ public:
     }
     friend bool operator>=(iterator const& a, iterator const& b) {
         return !(a < b);
+    }
+
+    auto begin() const {
+        return begin_;
+    }
+
+    auto end() const {
+        return end_;
     }
 
 private:

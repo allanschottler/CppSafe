@@ -15,6 +15,7 @@ class Conan(ConanFile):
     
     requires = [
         "boost/1.85.0",
+        "benchmark/1.9.1",
     ]
     
     def configure(self):

@@ -2,6 +2,7 @@
 
 #include "iterator.hpp"
 #include "type_traits.hpp"
+#include "unsafe.hpp"
 #include <algorithm>
 
 namespace safe {
@@ -26,14 +27,14 @@ template<class It, class F>
 void for_each(It first, It last, F&& func)
 requires safe::is_safe<It>::value {
     for(auto it = first; it != last; ++it)
-        it->and_then(func);
+        func(unsafe_ref_get{}(it));
 }
 
 template<class Container, class F>
 void for_each(Container& c, F&& func)
 requires safe::is_safe<Container>::value {
     for(auto it = c.begin(); it != c.end(); ++it)
-        it->and_then(func);
+        func(unsafe_ref_get{}(it));
 }
 
 } // namespace safe

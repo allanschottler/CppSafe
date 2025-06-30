@@ -10,10 +10,8 @@ struct pointer {
     using deref_type = optional<std::reference_wrapper<element_type>>;
 
     pointer() : ptr_(nullptr) {}
-    pointer(pointer&& other) noexcept : ptr_(std::move(other.ptr_)) 
-    { other.ptr_ = nullptr; }
-    pointer(T*&& ptr) : ptr_(std::move(ptr)) 
-    { ptr = nullptr; }
+    pointer(pointer&& other) noexcept : ptr_(std::move(other.ptr_)) { other.ptr_ = nullptr; }
+    pointer(T*&& ptr) : ptr_(std::move(ptr)) { ptr = nullptr; }
     
     pointer(const pointer&) = delete;
     pointer& operator=(const pointer&) = delete;
@@ -74,6 +72,7 @@ struct pointer {
     { return ptr_ != nullptr; }
 
 private:
+    friend struct unsafe_ref_get;
     T* ptr_;
 };
 

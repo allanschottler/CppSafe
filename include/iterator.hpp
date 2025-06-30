@@ -107,6 +107,9 @@ struct iterator {
         if (current_ == end_ || o.current_ == end_) return 0;
         return std::distance(o.current_, current_);
     }
+    
+        auto begin() const { return begin_; }
+        auto end() const   { return end_; }
 
     // --- friends for arithmetic ---
     friend iterator operator+(iterator it, difference_type n) { it += n; return it; }
@@ -121,10 +124,8 @@ struct iterator {
     friend bool operator>(iterator const& a, iterator const& b)  { return b < a; }
     friend bool operator>=(iterator const& a, iterator const& b) { return !(a < b); }
 
-    auto begin() const { return begin_; }
-    auto end() const   { return end_; }
-
 private:
+    friend struct unsafe_ref_get;
     It begin_, end_, current_;
     char out_of_range = 0;
 };

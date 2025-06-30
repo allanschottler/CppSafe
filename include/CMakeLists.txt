@@ -1,2 +1,2 @@
-add_library(sayf INTERFACE)
-target_include_directories(sayf INTERFACE .)
+add_library(CppSafe INTERFACE)
+target_include_directories(CppSafe INTERFACE .)

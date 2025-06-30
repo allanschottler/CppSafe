@@ -1,3 +1,6 @@
+include(CTest)
+enable_testing()
+
 add_executable (TestIterator iterator.cpp)
 target_include_directories (TestIterator PRIVATE ${BOOST_INCLUDE_DIRS})
 target_link_libraries (TestIterator PRIVATE Boost::boost)

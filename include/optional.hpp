@@ -94,6 +94,7 @@ struct optional {
     { return _value.has_value(); }
     
 private:
+    friend struct unsafe_ref_get;
     std::optional<T> _value;
 };
 

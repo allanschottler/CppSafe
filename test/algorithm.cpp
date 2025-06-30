@@ -1,7 +1,7 @@
 #define BOOST_TEST_MODULE SAFE_ALGORITHM_TEST
 #include <boost/test/included/unit_test.hpp>
-#include "vector.hpp"
 #include "algorithm.hpp"
+#include "vector.hpp"
 
 BOOST_AUTO_TEST_CASE(safe_algorithm_find) {
     std::vector<int> vec = {1, 2, 3, 4, 5};

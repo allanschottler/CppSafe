@@ -29,7 +29,7 @@ struct iterator {
 
     // safe deref: nullopt if at or past end
     deref_type operator*() const {
-        if(!out_of_range && current_ != end_)
+        if (!out_of_range && current_ != end_)
             return std::ref(*current_);
         return std::nullopt;
     }
@@ -49,51 +49,47 @@ struct iterator {
 
     // pre‐increment
     iterator& operator++() {
-        if(out_of_range < 0)
-            out_of_range = 0; // reset out of range if we were previously
-        if (current_ == end_) {
+        if (out_of_range < 0)
+            out_of_range = 0; // reset
+        if (current_ == end_)
             out_of_range = 1; // mark as out of range
-            return *this;
-        }
-        ++current_;
+        else
+            ++current_;
         return *this;
     }
 
     // post‐increment
     iterator operator++(int) {
         iterator tmp = *this;
-        if(out_of_range < 0)
-            out_of_range = 0; // reset out of range if we were previously
-        if (current_ == end_) {
+        if (out_of_range < 0)
+            out_of_range = 0; // reset
+        if (current_ == end_)
             out_of_range = 1; // mark as out of range
-            return tmp;
-        }
-        ++*this;
+        else
+            ++*this;
         return tmp;
     }
 
     // pre‐decrement
     iterator& operator--() {
-        if(out_of_range > 0)
-            out_of_range = 0; // reset out of range if we were previously
-       if(current_ == begin_) {
+        if (out_of_range > 0)
+            out_of_range = 0; // reset
+        if (current_ == begin_)
             out_of_range = -1; // mark as out of range
-            return *this;
-        }
-        --current_;
+        else
+            --current_;
         return *this;
     }
 
     // post‐decrement
     iterator operator--(int) {
         iterator tmp = *this;
-        if(out_of_range > 0)
-            out_of_range = 0; // reset out of range if we were previously
-        if(current_ == begin_) {
+        if (out_of_range > 0)
+            out_of_range = 0; // reset
+        if (current_ == begin_)
             out_of_range = -1; // mark as out of range
-            return tmp;
-        }
-        --*this;
+        else 
+            --*this;
         return tmp;
     }
 
@@ -102,9 +98,8 @@ struct iterator {
         return *this;
     }
 
-    iterator& operator-=(difference_type n) {
-        return *this += -n;
-    }
+    iterator& operator-=(difference_type n) 
+    { return *this += -n; }
 
     // distance between two safe::iterators
     difference_type operator-(iterator const& o) const {
@@ -114,59 +109,24 @@ struct iterator {
     }
 
     // --- friends for arithmetic ---
-    friend iterator operator+(iterator it, difference_type n) {
-        it += n; return it;
-    }
-    friend iterator operator+(difference_type n, iterator it) {
-        it += n; return it;
-    }
-    friend iterator operator-(iterator it, difference_type n) {
-        it -= n; return it;
-    }
+    friend iterator operator+(iterator it, difference_type n) { it += n; return it; }
+    friend iterator operator+(difference_type n, iterator it) { it += n; return it; }
+    friend iterator operator-(iterator it, difference_type n) { it -= n; return it; }
 
     // --- friends for comparisons ---
-    friend bool operator==(iterator const& a, iterator const& b) {
-        return a.current_ == b.current_;
-    }
-    friend bool operator!=(iterator const& a, iterator const& b) {
-        return !(a == b);
-    }
-    friend bool operator<(iterator const& a, iterator const& b) {
-        return a.current_ < b.current_;
-    }
-    friend bool operator<=(iterator const& a, iterator const& b) {
-        return !(b < a);
-    }
-    friend bool operator>(iterator const& a, iterator const& b) {
-        return b < a;
-    }
-    friend bool operator>=(iterator const& a, iterator const& b) {
-        return !(a < b);
-    }
+    friend bool operator==(iterator const& a, iterator const& b) { return a.current_ == b.current_; }
+    friend bool operator!=(iterator const& a, iterator const& b) { return !(a == b); }
+    friend bool operator<(iterator const& a, iterator const& b)  { return a.current_ < b.current_; }
+    friend bool operator<=(iterator const& a, iterator const& b) { return !(b < a); }
+    friend bool operator>(iterator const& a, iterator const& b)  { return b < a; }
+    friend bool operator>=(iterator const& a, iterator const& b) { return !(a < b); }
 
-    auto begin() const {
-        return begin_;
-    }
-
-    auto end() const {
-        return end_;
-    }
+    auto begin() const { return begin_; }
+    auto end() const   { return end_; }
 
 private:
     It begin_, end_, current_;
     char out_of_range = 0;
 };
-
-// helpers to inject into range‐based for, etc.
-template<typename C>
-auto begin(C& c) {
-    return iterator<typename C::iterator>(
-        c.begin(), c.end(), c.begin());
-}
-template<typename C>
-auto end(C& c) {
-    return iterator<typename C::iterator>(
-        c.begin(), c.end(), c.end());
-}
 
 } // namespace safe

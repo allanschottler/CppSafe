@@ -1,5 +1,6 @@
 #pragma once
 #include <optional>
+#include <functional>
 
 namespace safe {
 
@@ -31,8 +32,12 @@ struct optional {
     optional<U> and_then(F&& f)
     requires(!std::is_same_v<std::invoke_result_t<F, T&>, void>)
     {
-        if (_value.has_value())
-            return f(_value.value());
+        if (_value.has_value()) {
+            if constexpr (std::is_same_v<T, std::reference_wrapper<std::unwrap_reference_t<T>>>)
+                return f(_value.value().get());
+            else
+                return f(_value.value());
+        }
         return std::nullopt;
     }
     
@@ -40,20 +45,25 @@ struct optional {
     void and_then(F&& f) const
     requires(std::is_same_v<std::invoke_result_t<F, T&>, void>)
     {
-        if (_value.has_value())
-            f(_value.value());
+        if (_value.has_value()) {
+            if constexpr (std::is_same_v<T, std::reference_wrapper<std::unwrap_reference_t<T>>>)
+                f(_value.value().get());
+            else
+                f(_value.value());
+        }
     }
-
-    // for_each
+    
     template<class F, class G>
     void for_each(F&& f, G&& g) const
-    requires(std::is_same_v<std::invoke_result_t<F, T&>, void> &&
-             std::is_same_v<std::invoke_result_t<G>, void>)
     {
-        if (_value.has_value())
-            f(_value.value());
-        else
+        if (_value.has_value()) {
+            if constexpr (std::is_same_v<T, std::reference_wrapper<std::unwrap_reference_t<T>>>)
+                f(_value.value().get());
+            else
+                f(_value.value());
+        } else {
             g();
+        }
     }
     
     bool operator==(const optional& other) const 

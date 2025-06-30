@@ -22,3 +22,8 @@ add_executable (TestNumeric numeric.cpp)
 target_include_directories (TestNumeric PRIVATE ${BOOST_INCLUDE_DIRS})
 target_link_libraries (TestNumeric PRIVATE Boost::boost)
 add_test(NAME Numeric COMMAND $<TARGET_FILE:TestNumeric>)
+
+add_executable (TestMemory memory.cpp)
+target_include_directories (TestMemory PRIVATE ${BOOST_INCLUDE_DIRS})
+target_link_libraries (TestMemory PRIVATE Boost::boost)
+add_test(NAME Memory COMMAND $<TARGET_FILE:TestMemory>)

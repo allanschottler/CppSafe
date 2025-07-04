@@ -7,6 +7,7 @@ BOOST_AUTO_TEST_CASE(safe_numeric_basic) {
     BOOST_CHECK(num1 == 42);
 
     safe::numeric<int> num2;
+    BOOST_CHECK(!num2.has_value());
     num2 = 100;
     BOOST_CHECK(num2 == 100);
 
@@ -53,6 +54,7 @@ BOOST_AUTO_TEST_CASE(safe_numeric_basic) {
     }
     BOOST_CHECK(sum == 45); 
 
+    BOOST_CHECK(255 == 255_suc);
     BOOST_CHECK(255_suc == 255);
     BOOST_CHECK(256_suc == std::nullopt); // Overflow for unsigned char
 
@@ -65,4 +67,6 @@ BOOST_AUTO_TEST_CASE(safe_numeric_basic) {
     BOOST_CHECK(safe::numeric<float>("1.2") == 1.2);
     BOOST_CHECK(safe::numeric<double>("-1.22") == -1.22);
     BOOST_CHECK(safe::numeric<float>("bla") == std::nullopt); // Invalid conversion
+    BOOST_CHECK(safe::numeric<int>("") == std::nullopt); // Empty string
+    BOOST_CHECK(safe::numeric<int>("12345678901234567890") == std::nullopt); // Out of range for int
 }

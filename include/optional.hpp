@@ -11,7 +11,7 @@ struct optional {
     optional(T&& v) : _value(std::move(v)) {}
     optional(std::nullopt_t) : _value(std::nullopt) {}
     optional(const optional& other) : _value(other._value) {}
-    optional(optional&& other) noexcept : _value(std::move(other._value)) 
+    optional(optional&& other) noexcept : _value(std::move(other._value))
     { other._value = std::nullopt; } // Clear the moved-from object
     
     optional& operator=(const optional& other) {
@@ -27,7 +27,7 @@ struct optional {
     bool has_value() const noexcept 
     { return _value.has_value(); }
     
-    // and_then 
+    // and_then
     template<class F, class U = std::invoke_result_t<F, T&>>
     optional<U> and_then(F&& f)
     requires(!std::is_same_v<std::invoke_result_t<F, T&>, void>)
@@ -78,21 +78,12 @@ struct optional {
     bool operator!=(const optional& other) const 
     { return !(*this == other); }
     
-    bool operator<(const optional& other) const 
-    { return _value < other._value; }
-    
-    bool operator<=(const optional& other) const 
-    { return !(other < *this); }
-    
-    bool operator>(const optional& other) const 
-    { return other < *this; }
-    
-    bool operator>=(const optional& other) const 
-    { return !(*this < other); }
-    
     explicit operator bool() const noexcept 
     { return _value.has_value(); }
     
+    T& value() { return _value.value(); }
+    const T& value() const { return _value.value(); }
+
 protected:
     friend struct unsafe_ref_get;
     std::optional<T> _value;

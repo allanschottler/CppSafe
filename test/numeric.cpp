@@ -72,4 +72,15 @@ BOOST_AUTO_TEST_CASE(safe_numeric_basic) {
     BOOST_CHECK(safe::numeric<char>("128") == std::nullopt); // Out of range for char
     BOOST_CHECK(safe::numeric<char>("127") == 127);
     BOOST_CHECK(safe::numeric<int>("12345678901234567890") == std::nullopt); // Out of range for int
+
+    bool called = false;
+    safe::numeric<int>().for_each(
+        [](int v) { BOOST_FAIL("Should not be called, no value present"); },
+        [&called] { called = true; });
+    BOOST_CHECK(called); 
+
+    safe::numeric<int>(42).for_each(
+        [](int v) { BOOST_CHECK(v == 42); },
+        []{ BOOST_FAIL("Should not be called, value present"); }
+    );
 }

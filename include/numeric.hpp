@@ -282,20 +282,16 @@ struct numeric {
     { _value.for_each(std::forward<decltype(f)>(f), std::forward<decltype(g)>(g)); }
 };
 
-// comparisons with raw values on left-hand side
+// comparisons
 template<class T, std::convertible_to<T> U>
 requires std::numeric_limits<T>::is_specialized
-inline bool operator==(const U& lhs, const numeric<T>& rhs) {
-    return rhs == static_cast<T>(lhs);
-}
+inline bool operator==(const U& lhs, const numeric<T>& rhs) { return rhs == static_cast<T>(lhs); }
 template<class T, std::convertible_to<T> U>
 requires std::numeric_limits<T>::is_specialized
 inline bool operator!=(const U& lhs, const numeric<T>& rhs) { return !(lhs == rhs); }
 template<class T, std::convertible_to<T> U>
 requires std::numeric_limits<T>::is_specialized
-inline bool operator<(const U& lhs, const numeric<T>& rhs)  {
-    return static_cast<T>(lhs) < rhs._value.value();
-}
+inline bool operator<(const U& lhs, const numeric<T>& rhs)  { return static_cast<T>(lhs) < rhs; }
 template<class T, std::convertible_to<T> U>
 requires std::numeric_limits<T>::is_specialized
 inline bool operator<=(const U& lhs, const numeric<T>& rhs) { return !(rhs < lhs); }
@@ -305,6 +301,46 @@ inline bool operator>(const U& lhs, const numeric<T>& rhs)  { return rhs < lhs; 
 template<class T, std::convertible_to<T> U>
 requires std::numeric_limits<T>::is_specialized
 inline bool operator>=(const U& lhs, const numeric<T>& rhs) { return !(lhs < rhs); }
+
+// arithmetic
+template<class T, std::convertible_to<T> U>
+requires std::numeric_limits<T>::is_specialized
+inline numeric<T> operator+(const U& lhs, const numeric<T>& rhs) {
+    if (!rhs._value.has_value()) return numeric<T>(std::nullopt);
+    T l = static_cast<T>(lhs), r = rhs._value.value();
+    if (l > std::numeric_limits<T>::max() - r) return numeric<T>(std::nullopt);
+    return numeric<T>(l + r);
+}
+template<class T, std::convertible_to<T> U>
+requires std::numeric_limits<T>::is_specialized
+inline numeric<T> operator-(const U& lhs, const numeric<T>& rhs) {
+    if (!rhs._value.has_value()) return numeric<T>(std::nullopt);
+    T l = static_cast<T>(lhs), r = rhs._value.value();
+    if (l < std::numeric_limits<T>::lowest() + r) return numeric<T>(std::nullopt);
+    return numeric<T>(l - r);
+}
+template<class T, std::convertible_to<T> U>
+requires std::numeric_limits<T>::is_specialized
+inline numeric<T> operator*(const U& lhs, const numeric<T>& rhs) {
+    if (!rhs._value.has_value()) return numeric<T>(std::nullopt);
+    T l = static_cast<T>(lhs), r = rhs._value.value();
+    if (l > std::numeric_limits<T>::max() / r) return numeric<T>(std::nullopt);
+    return numeric<T>(l * r);
+}
+template<class T, std::convertible_to<T> U>
+requires std::numeric_limits<T>::is_specialized
+inline numeric<T> operator/(const U& lhs, const numeric<T>& rhs) {
+    if (!rhs._value.has_value() || rhs._value.value() == T(0)) return numeric<T>(std::nullopt);
+    T l = static_cast<T>(lhs), r = rhs._value.value();
+    return numeric<T>(l / r);
+}
+template<class T, std::convertible_to<T> U>
+requires std::numeric_limits<T>::is_specialized
+inline numeric<T> operator%(const U& lhs, const numeric<T>& rhs) {
+    if (!rhs._value.has_value() || rhs._value.value() == T(0)) return numeric<T>(std::nullopt);
+    T l = static_cast<T>(lhs), r = rhs._value.value();
+    return numeric<T>(l % r);
+}
 
 constexpr numeric<int>                operator"" _si  (unsigned long long v) noexcept { return numeric<int>(v); }
 constexpr numeric<unsigned int>       operator"" _su  (unsigned long long v) noexcept { return numeric<unsigned int>(v); }

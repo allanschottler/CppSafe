@@ -37,6 +37,7 @@ BOOST_AUTO_TEST_CASE(safe_numeric_basic) {
     using safe::operator"" _si;
     using safe::operator"" _sc;
     using safe::operator"" _suc;
+    using safe::operator"" _sf;
     
     BOOST_CHECK(1_si/0 == std::nullopt); // Division by zero
     BOOST_CHECK(1_su - 10_su == std::nullopt);
@@ -57,6 +58,8 @@ BOOST_AUTO_TEST_CASE(safe_numeric_basic) {
     BOOST_CHECK(255 == 255_suc);
     BOOST_CHECK(255_suc == 255);
     BOOST_CHECK(256_suc == std::nullopt); // Overflow for unsigned char
+    BOOST_CHECK(2 * 25_si == 50_si);
+    BOOST_CHECK(1 / 2.0_sf == 0.5);
 
     BOOST_CHECK(safe::numeric<float>(NAN) == std::nullopt);
     // BOOST_CHECK(safe::numeric<int>(NAN) == std::nullopt);

@@ -93,7 +93,7 @@ struct optional {
     explicit operator bool() const noexcept 
     { return _value.has_value(); }
     
-private:
+protected:
     friend struct unsafe_ref_get;
     std::optional<T> _value;
 };

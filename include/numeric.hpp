@@ -17,8 +17,6 @@ auto from_string(std::string_view v) -> numeric<T>;
 template<class T>
 requires std::numeric_limits<T>::is_specialized
 struct numeric {
-    optional<T> _value;
-
     numeric(std::nullopt_t) noexcept : _value(std::nullopt) {}
     numeric() noexcept = default;
     numeric(const numeric& o) = default;
@@ -103,7 +101,7 @@ struct numeric {
         if (!_value.has_value() && o._value.has_value()) return true;
         if (_value.has_value() && !o._value.has_value()) return false;
         if (!_value.has_value() && !o._value.has_value()) return false;
-        return _value.value() < o._value.value();
+        return unsafe_ref_get<numeric>{}(*this) < unsafe_ref_get<numeric>{}(o);
     }    
     bool operator<=(const numeric& o) const 
     { return !(o < *this); }
@@ -111,18 +109,11 @@ struct numeric {
     { return o < *this; }
     bool operator>=(const numeric& o) const 
     { return !(*this < o); }
-    
-    // bool operator==(const T& v) const { return _value.has_value() && _value.value() == v; }
-    // bool operator!=(const T& v) const { return !(*this == v); }
-    // bool operator<(const T& v) const { return _value.has_value() && _value.value() < v; }
-    // bool operator<=(const T& v) const { return _value.has_value() && _value.value() <= v; }
-    // bool operator>(const T& v) const { return _value.has_value() && _value.value() > v; }
-    // bool operator>=(const T& v) const { return _value.has_value() && _value.value() >= v; }
 
     numeric operator+(const numeric& o) const {
         if (!_value.has_value() || !o._value.has_value())
             return numeric(std::nullopt);
-        T a = _value.value(), b = o._value.value();
+        T a = unsafe_ref_get<numeric>{}(_value), b = unsafe_ref_get<numeric>{}(o._value);
         if (a > std::numeric_limits<T>::max() - b)
             return numeric(std::nullopt);
         return numeric(a + b);
@@ -130,7 +121,7 @@ struct numeric {
     numeric operator+(T v) const {
         if (!_value.has_value())
             return numeric(std::nullopt);
-        T a = _value.value();
+        T a = unsafe_ref_get<numeric>{}(_value);
         if (a > std::numeric_limits<T>::max() - v)
             return numeric(std::nullopt);
         return numeric(a + v);
@@ -138,7 +129,7 @@ struct numeric {
     numeric& operator+=(const numeric& o) {
         if (!_value.has_value() || !o._value.has_value())
             return *this = numeric(std::nullopt);
-        T a = _value.value(), b = o._value.value();
+        T a = unsafe_ref_get<numeric>{}(_value), b = unsafe_ref_get<numeric>{}(o._value);
         if (a > std::numeric_limits<T>::max() - b)
             return *this = numeric(std::nullopt);
         _value = a + b;
@@ -147,7 +138,7 @@ struct numeric {
     numeric& operator+=(T v) {
         if (!_value.has_value())
             return *this = numeric(std::nullopt);
-        T a = _value.value();
+        T a = unsafe_ref_get<numeric>{}(_value);
         if (a > std::numeric_limits<T>::max() - v)
             return *this = numeric(std::nullopt);
         _value = a + v;
@@ -157,7 +148,7 @@ struct numeric {
     numeric operator-(const numeric& o) const {
         if (!_value.has_value() || !o._value.has_value())
             return numeric(std::nullopt);
-        T a = _value.value(), b = o._value.value();
+        T a = unsafe_ref_get<numeric>{}(_value), b = unsafe_ref_get<numeric>{}(o._value);
         if (a < std::numeric_limits<T>::lowest() + b)
             return numeric(std::nullopt);
         return numeric(a - b);
@@ -165,7 +156,7 @@ struct numeric {
     numeric operator-(T v) const {
         if (!_value.has_value())
             return numeric(std::nullopt);
-        T a = _value.value();
+        T a = unsafe_ref_get<numeric>{}(_value);
         if (a < std::numeric_limits<T>::lowest() + v)
             return numeric(std::nullopt);
         return numeric(a - v);
@@ -173,7 +164,7 @@ struct numeric {
     numeric& operator-=(const numeric& o) {
         if (!_value.has_value() || !o._value.has_value())
             return *this = numeric(std::nullopt);
-        T a = _value.value(), b = o._value.value();
+        T a = unsafe_ref_get<numeric>{}(_value), b = unsafe_ref_get<numeric>{}(o._value);
         if (a < std::numeric_limits<T>::lowest() + b)
             return *this = numeric(std::nullopt);
         _value = a - b;
@@ -182,7 +173,7 @@ struct numeric {
     numeric& operator-=(T v) {
         if (!_value.has_value())
             return *this = numeric(std::nullopt);
-        T a = _value.value();
+        T a = unsafe_ref_get<numeric>{}(_value);
         if (a < std::numeric_limits<T>::lowest() + v)
             return *this = numeric(std::nullopt);
         _value = a - v;
@@ -192,7 +183,7 @@ struct numeric {
     numeric operator*(const numeric& o) const {
         if (!_value.has_value() || !o._value.has_value())
             return numeric(std::nullopt);
-        T a = _value.value(), b = o._value.value();
+        T a = unsafe_ref_get<numeric>{}(_value), b = unsafe_ref_get<numeric>{}(o._value);
         if (a > std::numeric_limits<T>::max() / b)
             return numeric(std::nullopt);
         return numeric(a * b);
@@ -200,32 +191,32 @@ struct numeric {
     numeric operator*(T v) const {
         if (!_value.has_value())
             return numeric(std::nullopt);
-        T a = _value.value();
+        T a = unsafe_ref_get<numeric>{}(_value);
         if (a > std::numeric_limits<T>::max() / v)
             return numeric(std::nullopt);
         return numeric(a * v);
     }
 
     numeric operator/(const numeric& o) const {
-        if (!_value.has_value() || !o._value.has_value() || o._value.value() == T(0))
+        if (!_value.has_value() || !o._value.has_value() || unsafe_ref_get<numeric>{}(o._value) == T(0))
             return numeric(std::nullopt);
-        return numeric(_value.value() / o._value.value());
+        return numeric(unsafe_ref_get<numeric>{}(_value) / unsafe_ref_get<numeric>{}(o._value));
     }
     numeric operator/(T v) const {
         if (!_value.has_value() || v == T(0))
             return numeric(std::nullopt);
-        return numeric(_value.value() / v);
+        return numeric(unsafe_ref_get<numeric>{}(_value) / v);
     }
 
     numeric operator%(const numeric& o) const {
-        if (!_value.has_value() || !o._value.has_value() || o._value.value() == T(0))
+        if (!_value.has_value() || !o._value.has_value() || unsafe_ref_get<numeric>{}(o._value) == T(0))
             return numeric(std::nullopt);
-        return numeric(_value.value() % o._value.value());
+        return numeric(unsafe_ref_get<numeric>{}(_value) % unsafe_ref_get<numeric>{}(o._value));
     }
     numeric operator%(T v) const {
         if (!_value.has_value() || v == T(0))
             return numeric(std::nullopt);
-        return numeric(_value.value() % v);
+        return numeric(unsafe_ref_get<numeric>{}(_value) % v);
     }
 
     numeric operator-() const {
@@ -233,13 +224,13 @@ struct numeric {
             return numeric(std::nullopt);
         if (!_value.has_value())
             return numeric(std::nullopt);
-        return numeric(-_value.value());
+        return numeric(-unsafe_ref_get<numeric>{}(_value));
     }
 
     numeric& operator++() {
-        if (!_value.has_value() || _value.value() == std::numeric_limits<T>::max())
+        if (!_value.has_value() || unsafe_ref_get<numeric>{}(_value) == std::numeric_limits<T>::max())
             return *this = numeric(std::nullopt);
-        _value = _value.value() + T(1);
+        _value = unsafe_ref_get<numeric>{}(_value) + T(1);
         return *this;
     }
     numeric operator++(int) {
@@ -251,9 +242,9 @@ struct numeric {
         if constexpr (!std::numeric_limits<T>::is_signed) {
             return *this = numeric(std::nullopt);
         }
-        if (!_value.has_value() || _value.value() == std::numeric_limits<T>::lowest())
+        if (!_value.has_value() || unsafe_ref_get<numeric>{}(_value) == std::numeric_limits<T>::lowest())
             return *this = numeric(std::nullopt);
-        _value = _value.value() - T(1);
+        _value = unsafe_ref_get<numeric>{}(_value) - T(1);
         return *this;
     }
     numeric operator--(int) {
@@ -271,7 +262,7 @@ struct numeric {
     static constexpr numeric epsilon() noexcept 
     { return numeric(std::numeric_limits<T>::epsilon()); }
 
-    boolean has_value() const noexcept 
+    bool has_value() const noexcept 
     { return _value.has_value(); }
     explicit operator bool() const noexcept 
     { return _value.has_value(); }
@@ -280,6 +271,21 @@ struct numeric {
     { _value.and_then(std::forward<decltype(f)>(f)); }
     void for_each(auto&& f, auto&& g) const 
     { _value.for_each(std::forward<decltype(f)>(f), std::forward<decltype(g)>(g)); }
+
+private:
+    friend unsafe_ref_get<numeric>;
+    optional<T> _value;
+};
+
+// unsafe_ref_get specialization for numeric
+template<class T>
+struct unsafe_ref_get<numeric<T>> {
+    T& operator()(numeric<T>& n) const {
+        return unsafe_ref_get<optional<T>>{}(n._value);
+    }
+    const T& operator()(const numeric<T>& n) const {
+        return unsafe_ref_get<optional<T>>{}(n._value);
+    }
 };
 
 // comparisons
@@ -306,39 +312,39 @@ inline bool operator>=(const U& lhs, const numeric<T>& rhs) { return !(lhs < rhs
 template<class T, std::convertible_to<T> U>
 requires std::numeric_limits<T>::is_specialized
 inline numeric<T> operator+(const U& lhs, const numeric<T>& rhs) {
-    if (!rhs._value.has_value()) return numeric<T>(std::nullopt);
-    T l = static_cast<T>(lhs), r = rhs._value.value();
+    if (!rhs.has_value()) return numeric<T>(std::nullopt);
+    T l = static_cast<T>(lhs), r = unsafe_ref_get<numeric<T>>{}(rhs);
     if (l > std::numeric_limits<T>::max() - r) return numeric<T>(std::nullopt);
     return numeric<T>(l + r);
 }
 template<class T, std::convertible_to<T> U>
 requires std::numeric_limits<T>::is_specialized
 inline numeric<T> operator-(const U& lhs, const numeric<T>& rhs) {
-    if (!rhs._value.has_value()) return numeric<T>(std::nullopt);
-    T l = static_cast<T>(lhs), r = rhs._value.value();
+    if (!rhs.has_value()) return numeric<T>(std::nullopt);
+    T l = static_cast<T>(lhs), r = unsafe_ref_get<numeric<T>>{}(rhs);
     if (l < std::numeric_limits<T>::lowest() + r) return numeric<T>(std::nullopt);
     return numeric<T>(l - r);
 }
 template<class T, std::convertible_to<T> U>
 requires std::numeric_limits<T>::is_specialized
 inline numeric<T> operator*(const U& lhs, const numeric<T>& rhs) {
-    if (!rhs._value.has_value()) return numeric<T>(std::nullopt);
-    T l = static_cast<T>(lhs), r = rhs._value.value();
+    if (!rhs.has_value()) return numeric<T>(std::nullopt);
+    T l = static_cast<T>(lhs), r = unsafe_ref_get<numeric<T>>{}(rhs);
     if (l > std::numeric_limits<T>::max() / r) return numeric<T>(std::nullopt);
     return numeric<T>(l * r);
 }
 template<class T, std::convertible_to<T> U>
 requires std::numeric_limits<T>::is_specialized
 inline numeric<T> operator/(const U& lhs, const numeric<T>& rhs) {
-    if (!rhs._value.has_value() || rhs._value.value() == T(0)) return numeric<T>(std::nullopt);
-    T l = static_cast<T>(lhs), r = rhs._value.value();
+    if (!rhs.has_value() || unsafe_ref_get<numeric<T>>{}(rhs) == T(0)) return numeric<T>(std::nullopt);
+    T l = static_cast<T>(lhs), r = unsafe_ref_get<numeric<T>>{}(rhs);
     return numeric<T>(l / r);
 }
 template<class T, std::convertible_to<T> U>
 requires std::numeric_limits<T>::is_specialized
 inline numeric<T> operator%(const U& lhs, const numeric<T>& rhs) {
-    if (!rhs._value.has_value() || rhs._value.value() == T(0)) return numeric<T>(std::nullopt);
-    T l = static_cast<T>(lhs), r = rhs._value.value();
+    if (!rhs._value.has_value() || unsafe_ref_get<numeric<T>>{}(rhs) == T(0)) return numeric<T>(std::nullopt);
+    T l = static_cast<T>(lhs), r = unsafe_ref_get<numeric<T>>{}(rhs);
     return numeric<T>(l % r);
 }
 

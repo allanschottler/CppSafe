@@ -40,6 +40,7 @@ BOOST_AUTO_TEST_CASE(safe_numeric_basic) {
     using safe::operator"" _sf;
     
     BOOST_CHECK(1_si/0 == std::nullopt); // Division by zero
+    BOOST_CHECK(1/0_si == std::nullopt); // Division by zero
     BOOST_CHECK(1_su - 10_su == std::nullopt);
     BOOST_CHECK(1_si - 10_si == -9_si);
     BOOST_CHECK(-1_su == std::nullopt);
@@ -63,6 +64,8 @@ BOOST_AUTO_TEST_CASE(safe_numeric_basic) {
 
     BOOST_CHECK(safe::numeric<float>(NAN) == std::nullopt);
     // BOOST_CHECK(safe::numeric<int>(NAN) == std::nullopt);
+
+    BOOST_CHECK(safe::numeric<char>(2222.2) == std::nullopt);
 
     BOOST_CHECK(safe::numeric<int>("12") == 12);
     BOOST_CHECK(safe::numeric<int>("-12") == -12);

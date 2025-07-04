@@ -27,14 +27,14 @@ template<class It, class F>
 void for_each(It first, It last, F&& func)
 requires safe::is_safe<It>::value {
     for(auto it = first; it != last; ++it)
-        func(unsafe_ref_get{}(it));
+        func(unsafe_ref_get<It>{}(it));
 }
 
 template<class Container, class F>
 void for_each(Container& c, F&& func)
 requires safe::is_safe<Container>::value {
     for(auto it = c.begin(); it != c.end(); ++it)
-        func(unsafe_ref_get{}(it));
+        func(unsafe_ref_get<typename Container::iterator>{}(it));
 }
 
 } // namespace safe

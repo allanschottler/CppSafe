@@ -72,8 +72,22 @@ struct pointer {
     { return ptr_ != nullptr; }
 
 private:
-    friend struct unsafe_ref_get;
+    friend struct unsafe_ref_get<pointer>;
     T* ptr_;
+};
+
+template<class T>
+struct unsafe_ref_get<pointer<T>> {
+    T& operator()(pointer<T>& p) const {
+        if (!p.ptr_)
+            throw std::runtime_error("Attempted to dereference an empty pointer");
+        return *p.ptr_;
+    }
+    const T& operator()(const pointer<T>& p) const {
+        if (!p.ptr_)
+            throw std::runtime_error("Attempted to dereference an empty pointer");
+        return *p.ptr_;
+    }
 };
 
 template<class T>

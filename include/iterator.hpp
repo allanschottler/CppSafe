@@ -125,9 +125,22 @@ struct iterator {
     friend bool operator>=(iterator const& a, iterator const& b) { return !(a < b); }
 
 private:
-    friend struct unsafe_ref_get;
+    friend unsafe_ref_get<iterator>;
+
     It begin_, end_, current_;
     char out_of_range = 0;
 };
+
+template<class T>
+struct unsafe_ref_get<iterator<T>> {
+    using value_t = typename T::value_type;
+    auto& operator()(iterator<T>& it) const {
+        return *(it.current_);
+    };
+    const auto& operator()(const iterator<T>& it) const {
+        return *(it.current_);
+    }
+};
+
 
 } // namespace safe

@@ -1,6 +1,7 @@
 #pragma once
 #include <optional>
 #include <functional>
+#include "unsafe.hpp"
 
 namespace safe {
 
@@ -80,13 +81,21 @@ struct optional {
     
     explicit operator bool() const noexcept 
     { return _value.has_value(); }
-    
-    T& value() { return _value.value(); }
-    const T& value() const { return _value.value(); }
 
-protected:
-    friend struct unsafe_ref_get;
+private:
+    friend unsafe_ref_get<optional>;
     std::optional<T> _value;
+};
+
+template<class T>
+struct unsafe_ref_get<optional<T>> {
+    T& operator()(optional<T>& opt) const {
+        return opt._value.value();
+    }
+    
+    const T& operator()(const optional<T>& opt) const {
+        return opt._value.value();
+    }
 };
 
 } // namespace safe

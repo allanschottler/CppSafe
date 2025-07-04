@@ -68,5 +68,8 @@ BOOST_AUTO_TEST_CASE(safe_numeric_basic) {
     BOOST_CHECK(safe::numeric<double>("-1.22") == -1.22);
     BOOST_CHECK(safe::numeric<float>("bla") == std::nullopt); // Invalid conversion
     BOOST_CHECK(safe::numeric<int>("") == std::nullopt); // Empty string
+    BOOST_CHECK(safe::numeric<unsigned char>("257") == std::nullopt); // Out of range for char
+    BOOST_CHECK(safe::numeric<char>("128") == std::nullopt); // Out of range for char
+    BOOST_CHECK(safe::numeric<char>("127") == 127);
     BOOST_CHECK(safe::numeric<int>("12345678901234567890") == std::nullopt); // Out of range for int
 }

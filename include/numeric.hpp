@@ -2,9 +2,17 @@
 
 #include "optional.hpp"
 #include <limits>
-#include <optional>  // for std::nullopt_t
+#include <optional>
 
 namespace safe {
+
+template<class T>
+requires std::numeric_limits<T>::is_specialized
+struct numeric;
+
+template<class T>
+requires std::numeric_limits<T>::is_specialized
+auto from_string(std::string_view v) -> numeric<T>;
 
 template<class T>
 requires std::numeric_limits<T>::is_specialized
@@ -15,28 +23,9 @@ struct numeric : optional<T> {
     numeric(numeric&& o) noexcept : optional<T>(std::move(o)) {
         o._value = std::nullopt; // Clear the moved-from object
     }
-    numeric(std::string_view v) {
-        try {
-            this->_value = std::nullopt;
-            if constexpr (std::is_integral_v<T> && std::is_unsigned_v<T>) {
-                // reject negative strings for unsigned types
-                if (!v.empty() && v.front() == '-') {
-                    this->_value = std::nullopt;
-                } else {
-                    this->_value = std::stoull(std::string(v));
-                }
-            } else if constexpr (std::is_integral_v<T> && std::is_signed_v<T>) {
-                this->_value = std::stoll(std::string(v));
-            } else if constexpr (std::is_floating_point_v<T>) {
-                this->_value = std::stod(std::string(v));
-            } else {
-                this->_value = v; // For string types
-            }
-        } catch (...) {
-            this->_value = std::nullopt; // In case of conversion failure
-        }
-    }
-
+    numeric(const optional<T>& o) : optional<T>(o) {}
+    numeric(optional<T>&& o) noexcept : optional<T>(std::move(o)) {}
+    
     numeric(unsigned long long v)
     requires(std::is_integral_v<T> && std::is_unsigned_v<T>) {
         if (v < static_cast<unsigned long long>(std::numeric_limits<T>::lowest()) || 
@@ -62,6 +51,9 @@ struct numeric : optional<T> {
         else
             this->_value = v;
     }
+    
+    explicit numeric(std::string_view v) : numeric(from_string<T>(v)) {}
+
     numeric& operator=(const numeric& o) {
         this->_value = o._value;
         return *this;
@@ -267,18 +259,41 @@ struct numeric : optional<T> {
 };
 
 // literal suffixes
-constexpr numeric<int>                operator"" _si (unsigned long long v) noexcept { return numeric<int>(v); }
-constexpr numeric<unsigned int>       operator"" _su (unsigned long long v) noexcept { return numeric<unsigned int>(v); }
-constexpr numeric<long>               operator"" _sl (unsigned long long v) noexcept { return numeric<long>(v); }
-constexpr numeric<unsigned long>      operator"" _sul(unsigned long long v) noexcept { return numeric<unsigned long>(v); }
-constexpr numeric<long long>          operator"" _sll(unsigned long long v) noexcept { return numeric<long long>(v); }
+constexpr numeric<int>                operator"" _si  (unsigned long long v) noexcept { return numeric<int>(v); }
+constexpr numeric<unsigned int>       operator"" _su  (unsigned long long v) noexcept { return numeric<unsigned int>(v); }
+constexpr numeric<long>               operator"" _sl  (unsigned long long v) noexcept { return numeric<long>(v); }
+constexpr numeric<unsigned long>      operator"" _sul (unsigned long long v) noexcept { return numeric<unsigned long>(v); }
+constexpr numeric<long long>          operator"" _sll (unsigned long long v) noexcept { return numeric<long long>(v); }
 constexpr numeric<unsigned long long> operator"" _sull(unsigned long long v) noexcept { return numeric<unsigned long long>(v); }
-constexpr numeric<char>               operator"" _sc (unsigned long long v) noexcept { return numeric<char>(v); }
-constexpr numeric<unsigned char>      operator"" _suc(unsigned long long v) noexcept { return numeric<unsigned char>(v); }
-constexpr numeric<short>              operator"" _ss (unsigned long long v) noexcept { return numeric<short>(v); }
-constexpr numeric<unsigned short>     operator"" _sus(unsigned long long v) noexcept { return numeric<unsigned short>(v); }
-constexpr numeric<float>              operator"" _sf (long double v) noexcept       { return numeric<float>(v); }
-constexpr numeric<double>             operator"" _sd (long double v) noexcept       { return numeric<double>(v); }
-constexpr numeric<long double>        operator"" _sld(long double v) noexcept       { return numeric<long double>(v); }
+constexpr numeric<char>               operator"" _sc  (unsigned long long v) noexcept { return numeric<char>(v); }
+constexpr numeric<unsigned char>      operator"" _suc (unsigned long long v) noexcept { return numeric<unsigned char>(v); }
+constexpr numeric<short>              operator"" _ss  (unsigned long long v) noexcept { return numeric<short>(v); }
+constexpr numeric<unsigned short>     operator"" _sus (unsigned long long v) noexcept { return numeric<unsigned short>(v); }
+constexpr numeric<float>              operator"" _sf  (long double v)        noexcept { return numeric<float>(v); }
+constexpr numeric<double>             operator"" _sd  (long double v)        noexcept { return numeric<double>(v); }
+constexpr numeric<long double>        operator"" _sld (long double v)        noexcept { return numeric<long double>(v); }
+
+template<class T>
+requires std::numeric_limits<T>::is_specialized
+auto from_string(std::string_view v) -> numeric<T> {
+    try {
+        if constexpr (std::is_integral_v<T> && std::is_unsigned_v<T>) {
+            // reject negative strings for unsigned types
+            if (!v.empty() && v.front() == '-') {
+                return std::nullopt;
+            } else {
+                return numeric<T>(std::stoull(std::string(v)));
+            }
+        } else if constexpr (std::is_integral_v<T> && std::is_signed_v<T>) {
+            return numeric<T>(std::stoll(std::string(v)));
+        } else if constexpr (std::is_floating_point_v<T>) {
+            return numeric<T>(std::stod(std::string(v)));
+        } else {
+            return std::nullopt; // For string types
+        }
+    } catch (...) {
+        return std::nullopt; // In case of conversion failure
+    }
+}
 
 } // namespace safe

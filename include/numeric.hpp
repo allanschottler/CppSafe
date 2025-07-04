@@ -15,6 +15,27 @@ struct numeric : optional<T> {
     numeric(numeric&& o) noexcept : optional<T>(std::move(o)) {
         o._value = std::nullopt; // Clear the moved-from object
     }
+    numeric(std::string_view v) {
+        try {
+            this->_value = std::nullopt;
+            if constexpr (std::is_integral_v<T> && std::is_unsigned_v<T>) {
+                // reject negative strings for unsigned types
+                if (!v.empty() && v.front() == '-') {
+                    this->_value = std::nullopt;
+                } else {
+                    this->_value = std::stoull(std::string(v));
+                }
+            } else if constexpr (std::is_integral_v<T> && std::is_signed_v<T>) {
+                this->_value = std::stoll(std::string(v));
+            } else if constexpr (std::is_floating_point_v<T>) {
+                this->_value = std::stod(std::string(v));
+            } else {
+                this->_value = v; // For string types
+            }
+        } catch (...) {
+            this->_value = std::nullopt; // In case of conversion failure
+        }
+    }
 
     numeric(unsigned long long v)
     requires(std::is_integral_v<T> && std::is_unsigned_v<T>) {
@@ -34,7 +55,8 @@ struct numeric : optional<T> {
     }
     numeric(long double v)
     requires(not std::is_integral_v<T>) {
-        if (v < static_cast<long double>(std::numeric_limits<T>::lowest()) || 
+        if (std::isnan(v) || 
+            v < static_cast<long double>(std::numeric_limits<T>::lowest()) || 
             v > static_cast<long double>(std::numeric_limits<T>::max()))
             this->_value = std::nullopt;
         else
@@ -80,25 +102,6 @@ struct numeric : optional<T> {
             this->_value = static_cast<T>(v);
         return *this;
     }
-
-    // T& usafe_get() {
-    //     if (!this->_value.has_value())
-    //         throw std::runtime_error("Attempted to access value of empty numeric");
-    //     return this->_value.value();
-    // }
-
-    // const T& usafe_get() const {
-    //     if (!this->_value.has_value())
-    //         throw std::runtime_error("Attempted to access value of empty numeric");
-    //     return this->_value.value();
-    // }
-
-    // T& operator*() {
-    //     return usafe_get();
-    // }
-    // const T& operator*() const {
-    //     return usafe_get();
-    // }
 
     // addition
     numeric operator+(const numeric& o) const {
@@ -249,6 +252,18 @@ struct numeric : optional<T> {
         --*this;
         return tmp;
     }
+
+    static constexpr numeric min() noexcept 
+    { return numeric(std::numeric_limits<T>::min()); }
+
+    static constexpr numeric max() noexcept 
+    { return numeric(std::numeric_limits<T>::max()); }
+
+    static constexpr numeric lowest() noexcept 
+    { return numeric(std::numeric_limits<T>::lowest()); }
+
+    static constexpr numeric epsilon() noexcept 
+    { return numeric(std::numeric_limits<T>::epsilon()); }
 };
 
 // literal suffixes

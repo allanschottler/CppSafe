@@ -16,17 +16,17 @@ BOOST_AUTO_TEST_CASE(safe_numeric_basic) {
     safe::numeric<int> num4(std::move(num2));
     BOOST_CHECK(num4 == 100);
 
-    // BOOST_CHECK(!num2.has_value()); // num2 should be empty after move
+    BOOST_CHECK(!num2.has_value()); // num2 should be empty after move
 
     num4 = num3;
     BOOST_CHECK(num4 == 42);
 
     num4 = std::move(num3);
     BOOST_CHECK(num4 == 42);
+    BOOST_CHECK(num1 < 43);
+    BOOST_CHECK(num3 == std::nullopt); // num3 should be empty after move
 
-    BOOST_CHECK(num1 < 43);    // And this
-
-    num4 = std::numeric_limits<int>::max();
+    num4 = safe::numeric<int>::max();
     
     BOOST_CHECK(num4 + num3 == std::nullopt); // Overflow
     BOOST_CHECK(num4 - 1);
@@ -55,4 +55,14 @@ BOOST_AUTO_TEST_CASE(safe_numeric_basic) {
 
     BOOST_CHECK(255_suc == 255);
     BOOST_CHECK(256_suc == std::nullopt); // Overflow for unsigned char
+
+    BOOST_CHECK(safe::numeric<float>(NAN) == std::nullopt);
+    // BOOST_CHECK(safe::numeric<int>(NAN) == std::nullopt);
+
+    BOOST_CHECK(safe::numeric<int>("12") == 12);
+    BOOST_CHECK(safe::numeric<int>("-12") == -12);
+    BOOST_CHECK(safe::numeric<unsigned int>("-12") == std::nullopt); // Invalid conversion
+    BOOST_CHECK(safe::numeric<float>("1.2") == 1.2);
+    BOOST_CHECK(safe::numeric<double>("-1.22") == -1.22);
+    BOOST_CHECK(safe::numeric<float>("bla") == std::nullopt); // Invalid conversion
 }

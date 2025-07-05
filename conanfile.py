@@ -2,16 +2,22 @@ from conan import ConanFile
 from conan.tools.cmake import CMake, cmake_layout
 
 class Conan(ConanFile):
-    name = "safe"
+    name = "safepp"
     version = "1.0"
     license = "MIT"
     author = "Allan Schöttler"
-    #url = "https://github.com/allanschottler/GLPL"
+    url = "https://github.com/allanschottler/CppSafe"
     description = "Safe Cpp"
     topics = ("C++")
     
     settings = "os", "compiler", "build_type", "arch"
     generators = "CMakeDeps", "CMakeToolchain"
+    exports_sources = [
+        "CMakeLists.txt",
+        "include/*",
+        "benchmark/*",
+        "test/*",
+    ]
     
     requires = [
         "boost/1.85.0",
@@ -30,6 +36,10 @@ class Conan(ConanFile):
         cmake.configure()
         cmake.build()
 
+    def package(self):
+        cmake = CMake(self)
+        cmake.install()
+
     def package_info(self):
-        self.cpp_info.libs = ["safe"]
+        self.cpp_info.libs = ["safepp"]
     

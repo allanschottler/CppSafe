@@ -108,8 +108,8 @@ struct iterator {
         return std::distance(o.current_, current_);
     }
     
-        auto begin() const { return begin_; }
-        auto end() const   { return end_; }
+    auto begin() const { return begin_; }
+    auto end() const   { return end_; }
 
     // --- friends for arithmetic ---
     friend iterator operator+(iterator it, difference_type n) { it += n; return it; }

@@ -13,3 +13,7 @@ include_directories(include)
 
 add_subdirectory(benchmark)
 add_subdirectory(test)
+
+install(DIRECTORY include/ DESTINATION include)
+install(DIRECTORY benchmark/ DESTINATION benchmark)
+install(DIRECTORY test/ DESTINATION test)

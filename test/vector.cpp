@@ -7,7 +7,8 @@ BOOST_AUTO_TEST_CASE(safe_vector_basic) {
 
     auto opt_val = vec.at(1);
     BOOST_CHECK(opt_val.has_value());
-    BOOST_CHECK(opt_val.value() == 2);
+    opt_val.for_each([](const int& v) { BOOST_CHECK(v == 2); },
+                     []{ BOOST_FAIL("Should not call else branch"); });
 
     opt_val = vec.at(5);
     BOOST_CHECK(!opt_val.has_value());
@@ -26,4 +27,15 @@ BOOST_AUTO_TEST_CASE(safe_vector_loop) {
     for(const auto& val : vec)
         val.and_then([&sum](const int& v) { sum += v; });
     BOOST_CHECK(sum == 6);
+}
+
+BOOST_AUTO_TEST_CASE(safe_vector_alloc) {
+    safe::vector<int> vec(1000000000000); // Should not throw, just do nothing
+    BOOST_CHECK(vec.size() == 0);
+
+    vec.reserve(1000000000000); // Should not throw, just do nothing
+    BOOST_CHECK(vec.size() == 0);
+    
+    vec.resize(1000000000000); // Should not throw, just do nothing
+    BOOST_CHECK(vec.size() == 0);
 }
